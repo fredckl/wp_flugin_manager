@@ -5,7 +5,7 @@
  * Date: 2018-12-11
  * Time: 16:29
  */
-namespace FkMetabox\Utils;
+
 
 class Dumper
 {

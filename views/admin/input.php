@@ -6,8 +6,8 @@
  * Time: 15:53
  */
 ?>
-<p class="<?php echo $clsForm ?>">
+<div class="<?php echo $cls ?>">
     <label for="<?php echo $id ?>"><?php echo $label ?></label>
-    <?php require __DIR__ . DS . 'inputs' . DS . $type . '.php' ; ?>
-</p>
+    <?php require __DIR__ . DS . 'input_types' . DS . $type . '.php' ; ?>
+</div>
 
