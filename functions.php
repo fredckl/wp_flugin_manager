@@ -6,8 +6,8 @@
  * Time: 05:37
  */
 
-if (!function_exists('fk_convert_to_attrs')) {
-    function fk_convert_to_attrs ($attrs)
+if (!function_exists('flugin_convert_to_attrs')) {
+    function flugin_convert_to_attrs ($attrs)
     {
         $_attrs = [];
         foreach ($attrs as $key => $value) {
@@ -18,8 +18,8 @@ if (!function_exists('fk_convert_to_attrs')) {
     }
 }
 
-if (!function_exists('fk_slugify')) {
-    function fk_slugify($text, $replacment = '-')
+if (!function_exists('flugin_slugify')) {
+    function flugin_slugify($text, $replacment = '-')
     {
         // replace non letter or digits by -
         $text = preg_replace('~[^\pL\d]+~u', $replacment, $text);
@@ -84,13 +84,15 @@ if (!function_exists('h')) {
             }
         }
         if (is_string($double)) {
-            deprecationWarning(
-                'Passing charset string for 2nd argument is deprecated. ' .
-                'Use the 3rd argument instead.'
-            );
             $charset = $double;
             $double = true;
         }
         return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, $charset ?: $defaultCharset, $double);
+    }
+}
+
+if (!function_exists('flugin_create_path')) {
+    function flugin_create_path(array $path = []) {
+        return implode(DS, $path);
     }
 }

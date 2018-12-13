@@ -1,22 +1,30 @@
-.fk-metabox {
+.flugin-metabox {
   margin-bottom: 1rem;
 
   label {
     display: block
   }
 
-  .fk-metabox-container-images {
+  &.input-radio, &.input-checkbox {
+    span {
+      label {
+        display: inline;
+      }
+    }
+  }
+
+  .flugin-metabox-container-images {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
 
-    .fk-metabox-image {
+    .flugin-metabox-image {
       margin-right: 1rem;
       margin-top: 1rem;
       position: relative;
     }
 
-    .fk-metabox-image-remove {
+    .flugin-metabox-image-remove {
       opacity: 0;
       position: absolute;
       right: 0;
@@ -31,15 +39,15 @@
       text-decoration: none;
     }
 
-    .fk-metabox-image img {
+    .flugin-metabox-image img {
       /*max-width: 100%;*/
     }
 
-    .fk-metabox-image-remove:after {
+    .flugin-metabox-image-remove:after {
       content: "\2718";
     }
 
-    .fk-metabox-image:hover .fk-metabox-image-remove {
+    .flugin-metabox-image:hover .flugin-metabox-image-remove {
       opacity: 1;
     }
   }

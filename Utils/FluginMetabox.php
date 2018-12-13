@@ -6,7 +6,7 @@
  * Time: 07:11
  */
 
-class FkMetaboxManager
+class FluginMetabox
 {
     /**
      * @var string Indetifiant de la boxe
@@ -29,21 +29,6 @@ class FkMetaboxManager
     private $_fields;
 
     /**
-     * @var array Type de champs autorisé
-     */
-    static private $_postTypes = [];
-
-    /**
-     * @var array Fichier JS à charger
-     */
-    static private $_jsFiles = [];
-
-    /**
-     * @var array Fichier CSS à charger
-     */
-    static private $_cssFiles = [];
-
-    /**
      * @var string Classe englobant les inputs
      */
     private $_prefix;
@@ -59,26 +44,9 @@ class FkMetaboxManager
         ]
     ];
 
-    static public function addPostType($id, $name, $singular_name, $public = true, $has_archive = true)
+    public function __construct ($id, $title, $post_type, $prefix = 'flugin-metabox')
     {
-        static::$_postTypes[] = compact('id', 'name', 'singular_name', 'public', 'has_archive');
-    }
-
-    static public function addCss($handle, $src, $deps = array(), $ver = false, $media = 'all')
-    {
-        static::$_cssFiles[] = compact('handle', 'src', 'deps', 'ver', 'media');
-    }
-
-    static public function addJS($handle, $src, $deps = array(), $ver = false, $in_footer = false)
-    {
-        static::$_jsFiles[] = compact('handle', 'src', 'deps', 'ver', 'in_footer');
-    }
-
-    public function __construct ($id, $title, $post_type, $prefix = 'fk-metabox')
-    {
-        add_action( 'admin_init', [$this, 'registerPostType']);
         add_action('admin_init', [$this, 'create_meta_box']);
-        add_action('admin_enqueue_scripts', [$this, 'loadAssets']);
         add_action('save_post', [$this, 'save']);
         $this->id = $id;
         $this->title = $title;
@@ -86,49 +54,6 @@ class FkMetaboxManager
         $this->_prefix = $prefix;
 
         $this->_defaultInputParams['prefix'] = $prefix;
-    }
-
-    public function registerPostType ()
-    {
-        foreach (static::$_postTypes as $postType) {
-
-            \register_post_type( $postType['id'],
-                array(
-                    'labels' => array(
-                        'name' => $postType['name'],
-                        'singular_name' => $postType['singular_name']
-                    ),
-                    'public' => $postType['public'],
-                    'has_archive' => $postType['has_archive'],
-                )
-            );
-        }
-    }
-
-    /**
-     * Chargement des assets
-     */
-    public function loadAssets()
-    {
-        foreach (static::$_jsFiles as $jsFile) {
-            \wp_register_script(
-                $jsFile['handle'],
-                $jsFile['src'],
-                $jsFile['deps'],
-                $jsFile['ver'],
-                $jsFile['in_footer']);
-            \wp_enqueue_script($jsFile['handle']);
-        }
-
-        foreach (static::$_cssFiles as $cssFile) {
-            \wp_register_style(
-                $cssFile['handle'],
-                $cssFile['src'],
-                $cssFile['deps'],
-                $cssFile['ver'],
-                $cssFile['media']);
-            \wp_enqueue_style($cssFile['handle']);
-        }
     }
 
     /**
@@ -144,17 +69,17 @@ class FkMetaboxManager
     {
         $containerVars = $labelVars = $inputVars = ['class' => null];
 
-        $containerVars['class'] = sprintf('%s %s-%s', $this->_prefix, $this->_prefix, $params['type']);
+        $containerVars['class'] = sprintf('%s input-%s %s-%s', $this->_prefix, $params['type'], $this->_prefix, $params['type']);
         if (isset($options['containerVars']) && is_array($options['containerVars'])) {
             $containerVars = $this->setAttributes($containerVars, $options['containerVars']);
         }
-        $containerVars = fk_convert_to_attrs(array_filter($containerVars));
+        $containerVars = flugin_convert_to_attrs(array_filter($containerVars));
 
         if (isset($options['labelVars']) && is_array($options['labelVars'])) {
             unset($labelVars['for']);
             $labelVars = $this->setAttributes($labelVars, $options['labelVars']);
         }
-        $labelVars = fk_convert_to_attrs(array_filter($labelVars));
+        $labelVars = flugin_convert_to_attrs(array_filter($labelVars));
 
         if (isset($options['inputVars']) && is_array($options['inputVars'])) {
             unset($inputVars['id']);
@@ -162,10 +87,10 @@ class FkMetaboxManager
 
             $inputVars = $this->setAttributes($inputVars, $options['labelVars']);
         }
-        $inputVars = fk_convert_to_attrs(array_filter($inputVars));
+        $inputVars = flugin_convert_to_attrs(array_filter($inputVars));
 
         $params += $this->_defaultInputParams;
-        $params['id'] = fk_slugify($this->_prefix . '-' . $params['id'], '_');
+        $params['id'] = flugin_slugify($this->_prefix . '-' . $params['id'], '_');
         $params['options'] = compact('containerVars', 'labelVars', 'inputVars');
 
         $this->_fields[] = $params;
@@ -218,7 +143,7 @@ class FkMetaboxManager
         return $this;
     }
 
-    public function addUploadField($id, $label, $multiple = false,  $default = '', array $options = [])
+    public function addUploadField($id, $label, $multiple = false, $default = '', array $options = [])
     {
         $params = compact('id', 'label', 'multiple', 'default');
         $params['type'] = 'upload';
@@ -240,6 +165,42 @@ class FkMetaboxManager
         return $this;
     }
 
+    /**
+     * @param $id
+     * @param $label
+     * @param array $selects
+     * @param null $empty Empty value
+     * @param null $default
+     * @param array $options
+     * @return $this
+     */
+    public function addSelectField($id, $label, array $selects, $empty = null, $default = null, array $options = [])
+    {
+        $params = compact('id', 'label', 'selects', 'empty', 'default');
+        $params['type'] = 'select';
+        $this->add($params, $options);
+        return $this;
+    }
+
+    public function addRadioField($id, $label, array $radios, $default = null, array $options = [])
+    {
+        $params = compact('id', 'label', 'radios', 'default');
+        $params['type'] = 'radio';
+        $this->add($params, $options);
+        return $this;
+    }
+
+    public function addCheckboxField($id, $label, array $checkboxs, $default = null, array $options = [])
+    {
+        if (is_string($default)) {
+            $default = [$default];
+        }
+
+        $params = compact('id', 'label', 'checkboxs', 'default');
+        $params['type'] = 'checkbox';
+        $this->add($params, $options);
+        return $this;
+    }
 
     public function create_meta_box ()
     {
@@ -262,17 +223,12 @@ class FkMetaboxManager
             extract($field);
 //            var_dump($options['containerVars']);
 //            var_dump(get_defined_vars());die;
-            require __DIR__ . DS . $this->_createPaths(['views', 'admin', 'input' . '.php']);
+            require FLUGIN_VIEW . flugin_create_path(['admin', 'input.php']);
         }
 
         if (!empty($this->_fields)) {
             echo '<input type="hidden" name="' . $this->id . '_nonce" value="'. wp_create_nonce($this->id) .'" />';
         }
-    }
-
-    private function _createPaths(array $paths)
-    {
-        return implode(DS, $paths);
     }
 
 
