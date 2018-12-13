@@ -25,7 +25,8 @@
         var images, imagesID;
 
         images = selection.toJSON();
-        console.log(images);
+        console.log(images.filter(function (item) {console.log(item); return item}));
+
         imagesID = selection.map(function (item) {
           return item.toJSON().id;
         });

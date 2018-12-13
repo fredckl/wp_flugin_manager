@@ -47,7 +47,7 @@ $box->addTextareaField(
 
 $box->addWysiWygField('desc_long', 'Description longue', 'HAHHAHA');
 
-$box->addUploadField('vignette', 'Vignette');
+$box->addUploadField('vignette', 'Vignette', true);
 //$box->add('race', 'Race');
 //$box->add('description', 'Description', 'textarea');
 //$box->add('autre', 'Autre', 'wysiwyg');
