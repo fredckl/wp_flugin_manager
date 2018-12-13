@@ -46,11 +46,21 @@ class FkMetaboxManager
     /**
      * @var string Classe englobant les inputs
      */
-    private $_clsWrapInput;
+    private $_prefix;
+
+    private $_defaultInputParams = [
+        'id' => null,
+        'label' => '',
+        'default' => '',
+        'options' => [
+//            'containerVars' => [],
+//            'labelVars' => [],
+//            'inputVars' => []
+        ]
+    ];
 
     static public function addPostType($id, $name, $singular_name, $public = true, $has_archive = true)
     {
-
         static::$_postTypes[] = compact('id', 'name', 'singular_name', 'public', 'has_archive');
     }
 
@@ -64,7 +74,7 @@ class FkMetaboxManager
         static::$_jsFiles[] = compact('handle', 'src', 'deps', 'ver', 'in_footer');
     }
 
-    public function __construct ($id, $title, $post_type, $classWrapInput = 'fk-metabox')
+    public function __construct ($id, $title, $post_type, $prefix = 'fk-metabox')
     {
         add_action( 'admin_init', [$this, 'registerPostType']);
         add_action('admin_init', [$this, 'create_meta_box']);
@@ -73,7 +83,9 @@ class FkMetaboxManager
         $this->id = $id;
         $this->title = $title;
         $this->post_type = $post_type;
-        $this->_clsWrapInput = $classWrapInput;
+        $this->_prefix = $prefix;
+
+        $this->_defaultInputParams['prefix'] = $prefix;
     }
 
     public function registerPostType ()
@@ -119,16 +131,112 @@ class FkMetaboxManager
         }
     }
 
-    public function add ($id, $label, $input_type = 'text', $default = '', $cls = null)
+    /**
+     * Create a new input field
+     * - id Identifier
+     * - label Label
+     * - default Default value
+     * - options Other parameters
+     * @param array $params
+     * @return $this
+     */
+    public function add (array $params, array $options = [])
     {
-        $this->_fields[] = [
-            'id' => $this->id . '_' . $id,
-            'cls' => $cls ? $cls : sprintf('%s %s-%s', $this->_clsWrapInput, $this->_clsWrapInput, $id),
-            'label' => $label,
-            'type' => $input_type,
-            'default' => $default
-        ];
+        $containerVars = $labelVars = $inputVars = ['class' => null];
 
+        $containerVars['class'] = sprintf('%s %s-%s', $this->_prefix, $this->_prefix, $params['type']);
+        if (isset($options['containerVars']) && is_array($options['containerVars'])) {
+            $containerVars = $this->setAttributes($containerVars, $options['containerVars']);
+        }
+        $containerVars = fk_convert_to_attrs(array_filter($containerVars));
+
+        if (isset($options['labelVars']) && is_array($options['labelVars'])) {
+            unset($labelVars['for']);
+            $labelVars = $this->setAttributes($labelVars, $options['labelVars']);
+        }
+        $labelVars = fk_convert_to_attrs(array_filter($labelVars));
+
+        if (isset($options['inputVars']) && is_array($options['inputVars'])) {
+            unset($inputVars['id']);
+            unset($inputVars['data-id']); // Mot reservé
+
+            $inputVars = $this->setAttributes($inputVars, $options['labelVars']);
+        }
+        $inputVars = fk_convert_to_attrs(array_filter($inputVars));
+
+        $params += $this->_defaultInputParams;
+        $params['id'] = fk_slugify($this->_prefix . '-' . $params['id'], '_');
+        $params['options'] = compact('containerVars', 'labelVars', 'inputVars');
+
+        $this->_fields[] = $params;
+
+        return $this;
+    }
+
+    /**
+     * @param array $form
+     * @param array $to
+     * @return array
+     */
+    public function setAttributes(array $form, array $to)
+    {
+        foreach ($to as $key => $val) {
+            $form[$key] = isset($form[$key]) ? $form[$key] . ' ' . $val : $val;
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param integer $id Identifiant
+     * @param string $label Label du champ
+     * @param string $default
+     * @param null $cls
+     * @return $this
+     */
+    public function addTextField($id, $label, $default = '', array $options = [])
+    {
+        $params = compact('id', 'label', 'default');
+        $params['type'] = 'text';
+        $this->add($params, $options);
+        return $this;
+    }
+
+    public function addTextareaField($id, $label, $default = '', array $options = [])
+    {
+        $params = compact('id', 'label', 'default');
+        $params['type'] = 'textarea';
+        $this->add($params, $options);
+        return $this;
+    }
+
+    public function addWysiWygField ($id, $label, $default = '', array $options = [])
+    {
+        $params = compact('id', 'label', 'default');
+        $params['type'] = 'wysiwyg';
+        $this->add($params, $options);
+        return $this;
+    }
+
+    public function addUploadField($id, $label, $multiple = false,  $default = '', array $options = [])
+    {
+        $params = compact('id', 'label', 'multiple', 'default');
+        $params['type'] = 'upload';
+        $this->add($params, $options);
+        return $this;
+    }
+
+    /**
+     * Alias To AddUploadField
+     * @param $id
+     * @param $label
+     * @param string $default
+     * @param array $options
+     * @return $this
+     */
+    public function addUploaderField($id, $label, $default = '', array $options = [])
+    {
+        $this->addUploadField($id, $label, $default = '',  $options);
         return $this;
     }
 
@@ -152,6 +260,8 @@ class FkMetaboxManager
             }
 
             extract($field);
+//            var_dump($options['containerVars']);
+//            var_dump(get_defined_vars());die;
             require __DIR__ . DS . $this->_createPaths(['views', 'admin', 'input' . '.php']);
         }
 

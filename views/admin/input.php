@@ -6,8 +6,8 @@
  * Time: 15:53
  */
 ?>
-<div class="<?php echo $cls ?>">
-    <label for="<?php echo $id ?>"><?php echo $label ?></label>
+<div<?php echo ($options['containerVars']) ?>>
+    <label for="<?php echo $id ?>"<?php echo $options['labelVars'] ?>><?php echo $label ?></label>
     <?php require __DIR__ . DS . 'input_types' . DS . $type . '.php' ; ?>
 </div>
 

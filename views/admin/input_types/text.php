@@ -7,4 +7,4 @@
  */
 ?>
 
-<input type="<?php echo $tye ?>" name="<?php echo $id ?>" id="<?php echo $id ?>" value="<?php echo $value ?>">
+<input type="<?php echo h($type) ?>" name="<?php echo h($id) ?>" id="<?php echo h($id) ?>" value="<?php echo h($value) ?>"<?php echo ($options['inputVars']) ?>>

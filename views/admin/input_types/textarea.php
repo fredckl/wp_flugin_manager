@@ -7,4 +7,4 @@
  */
 ?>
 
-<textarea type="<?php echo $type ?>" name="<?php echo $id ?>" id="<?php echo $id ?>"><?php echo $value ?></textarea>
+<textarea type="<?php echo h($type) ?>" name="<?php echo h($id) ?>" id="<?php echo h($id) ?>"><?php echo esc_textarea($value) ?><?php echo ($options['inputVars']) ?></textarea>
