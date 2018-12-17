@@ -238,7 +238,7 @@ class FluginMetabox
      * @param $update
      * @return bool
      */
-    public function save ($post_id, $post, $update)
+    public function save ($post_id)
     {
         // Vérification de la capacité de pouvoir modifier un article
         if (!\current_user_can('edit_post', $post_id)) {
